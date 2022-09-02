@@ -86,6 +86,7 @@ app.post('/api/authenticate', async function(req, res) {
         }
 
         const payload = {
+            id: user.id,
             email: user.email,
             display_name: user.display_name,
             preferred_earliest: user.preferred_earliest,
@@ -100,6 +101,58 @@ app.post('/api/authenticate', async function(req, res) {
         res.status(500).send(err);
     }
 });
+
+app.post('/api/meeting', checkAuth, async function(req, res) {
+    const { title, preferred_earliest, preferred_latest, attendees } = req.body;
+
+    if (!title || !preferred_latest || !preferred_earliest || !attendees) {
+        res.status(400).send("title, preferred_latest, preferred_earliest, attendees are required");
+        return
+    }
+
+    try {
+        let result = await client.query(`
+            INSERT INTO scheduler.meetings
+            (title, preferred_earliest, preferred_latest)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `, [title, preferred_earliest, preferred_latest])
+
+        let meeting = result.rows[0]
+
+        // add the creator of meeting as attendee
+        for (let i = 0; i < attendees.length; i++) {
+            await client.query(`
+                INSERT INTO scheduler.meetings_users
+                (meeting_id, user_id)
+                VALUES ($1, $2)
+            `, [meeting.id, attendees[i]])
+        }
+    } catch (err) {
+        res.status(500).send(err);
+        return
+    }
+
+    res.status(200).send("Successful registration");
+});
+
+app.get('/api/meetings', checkAuth, async function(req, res) {
+    try {
+        let result = await client.query(`
+            SELECT m.* AS meeting_users FROM scheduler.meetings m
+            JOIN scheduler.meetings_users mu ON mu.meeting_id = m.id
+            WHERE mu.user_id = $1
+            ORDER BY m.agreed_time
+        `, [req.user_data.id])
+
+        let meetings = result.rows
+
+        res.status(200).json(meetings)
+    } catch (err) {
+        console.error(err)
+        res.status(500).send(err);
+    }
+})
 
 app.get('/checkToken', checkAuth, function(req, res) {
     res.sendStatus(200);
