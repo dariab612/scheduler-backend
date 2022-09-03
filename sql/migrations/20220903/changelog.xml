@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+            http://www.liquibase.org/xml/ns/dbchangelog-ext
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+
+    <changeSet id="mgrt:20220903:0001:init:add-user-and-meetings-tables" author="daria">
+        <sqlFile path="001_migration.create_table_user.sql"
+          relativeToChangelogFile="true" splitStatements="false" endDelimiter=""/>
+        <sqlFile path="002_migration.create_table_meetings.sql"
+          relativeToChangelogFile="true" splitStatements="false" endDelimiter=""/>
+        <sqlFile path="003_migration.create_table_meeting_preference.sql"
+          relativeToChangelogFile="true" splitStatements="false" endDelimiter=""/>
+    </changeSet>
+    <changeSet id="version:1_0_0" author="daria">
+        <tagDatabase tag="v1.0.1" />
+    </changeSet>
+</databaseChangeLog>

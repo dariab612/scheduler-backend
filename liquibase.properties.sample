@@ -1,0 +1,8 @@
+driver: org.postgresql.Driver
+url: jdbc:postgresql:PUT_DATABASE_NAME_HERE
+classpath: PATH_TO_DBC_DRIVER_FOR_POSTGRES
+username: LIQUIBASE_USER
+password: LIQUIBASE_USER_PASS
+changeLogFile: ./sql/changelog.xml
+parameter.api_user: PUT_API_USER_NAME
+parameter.syncer_user: PUT_SYNCER_USER_NAME
