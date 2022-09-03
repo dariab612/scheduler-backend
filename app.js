@@ -5,10 +5,12 @@ const jwt = require('jsonwebtoken');
 const checkAuth = require('./middleware');
 const { Client } = require('pg')
 const bcrypt = require('bcrypt');
+const SchedulerService = require('./scheduler')
 const saltRounds = 10;
 
-// pg part
+process.env.TZ = 'UTC'
 
+// pg part
 let client = new Client({
     user: 'postgres',
     host: 'localhost',
@@ -17,6 +19,8 @@ let client = new Client({
     port: 5432,
 })
 connect()
+let scheduler = new SchedulerService(client)
+scheduler.start()
 
 async function connect () {
     try {
@@ -103,22 +107,24 @@ app.post('/api/authenticate', async function(req, res) {
 });
 
 app.post('/api/meeting', checkAuth, async function(req, res) {
-    const { title, preferred_earliest, preferred_latest, attendees } = req.body;
+    const { title, preferred_earliest, preferred_latest, attendees, duration_in_minutes } = req.body;
 
-    if (!title || !preferred_latest || !preferred_earliest || !attendees) {
-        res.status(400).send("title, preferred_latest, preferred_earliest, attendees are required");
+    if (!title || !preferred_latest || !preferred_earliest || !attendees || !duration_in_minutes) {
+        res.status(400).send("title, preferred_latest, preferred_earliest, attendees, duration_in_minutes are required");
         return
     }
 
     try {
         let result = await client.query(`
             INSERT INTO scheduler.meetings
-            (title, preferred_earliest, preferred_latest)
-            VALUES ($1, $2, $3)
+            (title, preferred_earliest, preferred_latest, duration_in_minutes)
+            VALUES ($1, $2, $3, $4)
             RETURNING id
-        `, [title, preferred_earliest, preferred_latest])
+        `, [title, preferred_earliest, preferred_latest, duration_in_minutes])
 
         let meeting = result.rows[0]
+        // Add the meeting creator as an attendee
+        attendees.push(req.user_data.id)
 
         // add the creator of meeting as attendee
         for (let i = 0; i < attendees.length; i++) {
