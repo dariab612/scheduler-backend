@@ -1,9 +1,11 @@
-create table scheduler."meetings"
+create table scheduler.meetings
 (
-    id serial primary key,
-    title       varchar,
-    preferred_earliest timestamptz,
-    preferred_latest   timestamptz
+    id                  serial primary key,
+    title               varchar,
+    preferred_earliest  timestamp with time zone,
+    preferred_latest    timestamp with time zone,
+    agreed_time         timestamp with time zone,
+    duration_in_minutes integer
 );
 
 create table scheduler.meetings_users
